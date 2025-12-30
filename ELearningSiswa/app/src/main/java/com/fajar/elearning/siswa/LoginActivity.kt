@@ -9,6 +9,7 @@ import com.fajar.elearning.siswa.api.RetrofitClient
 import com.fajar.elearning.siswa.databinding.ActivityLoginBinding
 import com.fajar.elearning.siswa.models.LoginResponse
 import com.fajar.elearning.siswa.utils.SessionManager
+import com.google.gson.Gson // Perlu import Gson untuk parsing error body
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -51,6 +52,7 @@ class LoginActivity : AppCompatActivity() {
                 binding.btnLogin.visibility = View.VISIBLE
 
                 if (response.isSuccessful) {
+                    // --- STATUS 200 OK ---
                     val loginResponse = response.body()
                     if (loginResponse != null && loginResponse.success) {
                         // 1. Simpan Token
@@ -61,22 +63,35 @@ class LoginActivity : AppCompatActivity() {
                         // 2. Beri pesan sukses
                         Toast.makeText(this@LoginActivity, "Login Berhasil!", Toast.LENGTH_SHORT).show()
 
-                        // 3. Pindah ke Dashboard (Kita buat nanti, sementara ke MainActivity dulu)
-                        // Pindah ke Dashboard
-                        startActivity(Intent(this@LoginActivity, DashboardActivity::class.java))
+                        // 3. Pindah ke Dashboard (Ke MainActivity sekarang)
+                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                         finish()
                     } else {
                         Toast.makeText(this@LoginActivity, "Login Gagal: ${loginResponse?.message}", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this@LoginActivity, "Gagal terhubung server", Toast.LENGTH_SHORT).show()
+                    // --- STATUS ERROR (401, 404, 500) ---
+                    // Baca pesan error dari server (bukan body biasa)
+                    try {
+                        val errorBody = response.errorBody()?.string()
+                        if (errorBody != null) {
+                            // Parse JSON error manual
+                            val errorResponse = Gson().fromJson(errorBody, LoginResponse::class.java)
+                            Toast.makeText(this@LoginActivity, errorResponse.message, Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@LoginActivity, "Gagal: ${response.code()} ${response.message()}", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this@LoginActivity, "Terjadi kesalahan server (${response.code()})", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                 binding.progressBar.visibility = View.GONE
                 binding.btnLogin.visibility = View.VISIBLE
-                Toast.makeText(this@LoginActivity, "Error: ${t.message}", Toast.LENGTH_LONG).show()
+                // Ini baru benar-benar error koneksi (internet mati / server down)
+                Toast.makeText(this@LoginActivity, "Koneksi Gagal: Pastikan Server Jalan", Toast.LENGTH_LONG).show()
             }
         })
     }

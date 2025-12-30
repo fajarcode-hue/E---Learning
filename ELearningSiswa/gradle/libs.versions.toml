@@ -2,7 +2,7 @@
 # -- PLUGIN VERSIONS --
 # Sesuaikan agp dengan versi Android Studio kamu jika error.
 # 8.7.3 adalah versi stabil umum saat ini.
-agp = "8.7.3"
+agp = "8.13.2"
 kotlin = "2.0.21"
 
 # -- ANDROID CORE VERSIONS (STABIL) --

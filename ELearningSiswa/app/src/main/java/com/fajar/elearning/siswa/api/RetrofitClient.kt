@@ -8,7 +8,14 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.0.2.2:8000/api/"
+    /**
+     * BASE_URL: Alamat IP Server Laravel.
+     * * PENTING:
+     * 1. 192.168.123.102 adalah IP MacBook kamu saat ini.
+     * 2. Pastikan Laravel jalan dengan: php artisan serve --host=0.0.0.0 --port=8000
+     * 3. Jika IP berubah (pindah wifi), ganti IP di bawah ini sesuai hasil 'ifconfig' baru.
+     */
+    private const val BASE_URL = "http://192.168.19.46:8000/api/" // diganti terus jir
 
     val instance: ApiService by lazy {
 

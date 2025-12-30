@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="teal_700">#018786</color>
+    <color name="black">#212121</color>
+    <color name="white">#FFFFFF</color>
+    <!-- Warna Biru Utama -->
+    <color name="primary_blue">#1976D2</color>
+    <!-- Warna Biru Muda (untuk gradasi) -->
+    <color name="primary_light">#42A5F5</color>
+    <!-- Warna Background Aplikasi -->
+    <color name="bg_app">#F5F7FA</color>
+    <!-- Warna Teks Abu-abu -->
+    <color name="text_grey">#757575</color>
+    <!-- Warna Hijau Sukses -->
+    <color name="green_success">#4CAF50</color>
 </resources>

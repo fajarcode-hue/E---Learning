@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1. BERANDA (Home) -->
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="Beranda" />
+
+    <!-- 2. MATA PELAJARAN (Buku/List) -->
+    <item
+        android:id="@+id/nav_mapel"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:title="Mapel" />
+
+    <!-- 3. RIWAYAT (History/Jam) -->
+    <item
+        android:id="@+id/nav_history"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="Riwayat" />
+
+</menu>
