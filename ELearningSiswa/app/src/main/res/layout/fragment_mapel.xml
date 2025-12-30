@@ -31,7 +31,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitleMapel"/>
 
-    <!-- 2. SEARCH BAR -->
+    <!-- 2. SEARCH BAR (AKTIF) -->
+    <!-- FrameLayout untuk background rounded -->
     <FrameLayout
         android:id="@+id/searchContainer"
         android:layout_width="match_parent"
@@ -40,14 +41,23 @@
         android:background="@drawable/bg_input_rounded"
         app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cari pelajaran..."
-            android:textColor="#9E9E9E"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="16dp"/>
+        <!-- EditText untuk input pencarian -->
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:hint="Cari pelajaran..."
+            android:textColorHint="#9E9E9E"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:paddingStart="16dp"
+            android:paddingEnd="48dp"
+            android:inputType="text"
+            android:maxLines="1"
+            android:imeOptions="actionSearch"/>
 
+        <!-- Icon Search di ujung kanan -->
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -72,7 +82,6 @@
         tools:listitem="@layout/item_mapel"/>
 
     <!-- 4. LOADING -->
-    <!-- Perbaikan: Menggunakan ConstraintLayout params untuk centering -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -83,7 +92,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Perbaikan: Menggunakan ConstraintLayout params untuk centering -->
+    <!-- 5. ERROR / EMPTY STATE -->
     <TextView
         android:id="@+id/tvError"
         android:layout_width="wrap_content"

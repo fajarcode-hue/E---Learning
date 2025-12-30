@@ -35,8 +35,17 @@ class LatihanActivity : AppCompatActivity() {
 
         sessionManager = SessionManager(this)
 
-        // Ambil ID Materi dari Intent
+        // 1. Ambil Data dari Intent
         materiId = intent.getIntExtra("EXTRA_MATERI_ID", 0)
+        val namaMateri = intent.getStringExtra("EXTRA_NAMA_MATERI") ?: "Materi Latihan"
+
+        // 2. Set Nama Materi di Header (Agar tidak kosong)
+        binding.tvNamaMateri.text = namaMateri
+
+        // 3. Tombol Back (Jika diklik, kembali)
+        binding.btnBack.setOnClickListener {
+            finish()
+        }
 
         // Setup RecyclerView
         binding.rvSoal.layoutManager = LinearLayoutManager(this)

@@ -18,47 +18,42 @@ class DetailMateriActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // 1. Ambil data dari Intent (Dikirim dari MateriActivity)
-        val judul = intent.getStringExtra("EXTRA_JUDUL")
+        val judul = intent.getStringExtra("EXTRA_JUDUL") ?: "Detail Materi"
         val deskripsi = intent.getStringExtra("EXTRA_DESKRIPSI")
-
-        // Data ini sekarang isinya sudah Link Lengkap (http://...)
-        // karena Backend sudah mengirim 'file_url'
         val fileUrl = intent.getStringExtra("EXTRA_FILE_PATH")
+        val materiId = intent.getIntExtra("EXTRA_ID", 0)
 
-        val materiId = intent.getIntExtra("EXTRA_ID", 0) // Ambil ID
-
+        // 2. Tombol Mulai Latihan -> Kirim ID & NAMA MATERI
         binding.btnMulaiLatihan.setOnClickListener {
             val intent = Intent(this, LatihanActivity::class.java)
-            intent.putExtra("EXTRA_MATERI_ID", materiId) // Kirim ID ke LatihanActivity
+            intent.putExtra("EXTRA_MATERI_ID", materiId)
+
+            // PENTING: Kirim Nama Materi juga!
+            intent.putExtra("EXTRA_NAMA_MATERI", judul)
+
             startActivity(intent)
         }
 
-        // Debugging: Cek apakah link muncul di layar?
-        Toast.makeText(this, "Link File: $fileUrl", Toast.LENGTH_LONG).show()
-
-        // 2. Tampilkan Judul & Deskripsi
+        // 3. Tampilkan Data di UI
         binding.tvJudulDetail.text = judul
         binding.tvDeskripsiDetail.text = deskripsi ?: "Tidak ada deskripsi tambahan."
 
-        // 3. Logic Tombol Buka File
+        // 4. Logic Tombol Buka File
         if (!fileUrl.isNullOrEmpty()) {
             binding.btnBukaFile.visibility = View.VISIBLE
-
             binding.btnBukaFile.setOnClickListener {
                 bukaFileDiBrowser(fileUrl)
             }
         } else {
-            // Kalau null, tombol disembunyikan
             binding.btnBukaFile.visibility = View.GONE
         }
 
-        // 4. Tombol Back
+        // 5. Tombol Back
         binding.btnBack.setOnClickListener { finish() }
     }
 
     private fun bukaFileDiBrowser(fullUrl: String) {
         try {
-            // Karena 'fullUrl' sudah berisi http://..., kita tidak perlu nambah BASE_URL lagi
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(fullUrl)
             startActivity(intent)

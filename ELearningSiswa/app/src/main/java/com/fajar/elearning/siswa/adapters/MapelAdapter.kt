@@ -7,8 +7,8 @@ import com.fajar.elearning.siswa.databinding.ItemMapelBinding
 import com.fajar.elearning.siswa.models.Mapel
 
 class MapelAdapter(
-    private val listMapel: List<Mapel>,
-    private val onItemClick: (Mapel) -> Unit // TAMBAHAN: Listener untuk klik
+    private var listMapel: List<Mapel>, // Ubah 'val' menjadi 'var' agar bisa diupdate
+    private val onItemClick: (Mapel) -> Unit // Listener untuk klik
 ) : RecyclerView.Adapter<MapelAdapter.MapelViewHolder>() {
 
     class MapelViewHolder(val binding: ItemMapelBinding) : RecyclerView.ViewHolder(binding.root)
@@ -35,4 +35,10 @@ class MapelAdapter(
     }
 
     override fun getItemCount(): Int = listMapel.size
+
+    // --- FUNGSI BARU UNTUK SEARCH / FILTER ---
+    fun updateList(newList: List<Mapel>) {
+        listMapel = newList
+        notifyDataSetChanged() // Refresh tampilan RecyclerView
+    }
 }
