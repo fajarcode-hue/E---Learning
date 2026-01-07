@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const api = axios.create({
     // Ganti URL ini jika nanti upload ke hosting
-    baseURL: 'http://0.0.0.0:8000/api/',
+    baseURL: 'http://127.0.0.1:8000/api/',
 });
 
 // INTERCEPTOR: "Satpam" yang menyisipkan Token di setiap request

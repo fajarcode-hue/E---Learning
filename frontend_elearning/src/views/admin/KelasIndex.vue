@@ -1,23 +1,50 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import { useRouter } from 'vue-router'; // 1. Import Router
 import api from '../../api';
 
+const router = useRouter(); // 2. Init Router
+
+// STATE VARIABLES
 const listKelas = ref([]);
+const isLoading = ref(false);
 const showModal = ref(false);
 const isEdit = ref(false);
-const form = reactive({ id: null, nama_kelas: '' });
 
-// FETCH DATA
+// FORM STATE
+const form = reactive({
+    id: null,
+    nama_kelas: ''
+});
+
+// --- NAVIGASI ---
+const handleBack = () => {
+    router.push('/admin/dashboard'); 
+};
+
+// 1. FETCH DATA
 const fetchData = async () => {
+    isLoading.value = true;
     try {
         const response = await api.get('/admin/kelas');
-        listKelas.value = response.data.data;
+        
+        // Validasi Data Response
+        if (Array.isArray(response.data)) {
+            listKelas.value = response.data;
+        } else if (response.data && Array.isArray(response.data.data)) {
+            listKelas.value = response.data.data;
+        } else {
+            listKelas.value = [];
+        }
+
     } catch (error) {
-        console.error("Gagal load kelas:", error);
+        console.error("🔴 Gagal load kelas:", error);
+    } finally {
+        isLoading.value = false;
     }
 };
 
-// MODAL CONTROLS
+// 2. MODAL CONTROLS
 const openAdd = () => {
     isEdit.value = false;
     form.id = null;
@@ -32,33 +59,38 @@ const openEdit = (item) => {
     showModal.value = true;
 };
 
-const closeModal = () => showModal.value = false;
-
-// CRUD ACTIONS
+// 3. SIMPAN DATA
 const simpanData = async () => {
+    if (!form.nama_kelas) {
+        alert("Nama kelas wajib diisi!");
+        return;
+    }
+
     try {
-        if (!form.nama_kelas) return alert("Nama kelas wajib diisi");
-        
         if (isEdit.value) {
             await api.put(`/admin/kelas/${form.id}`, { nama_kelas: form.nama_kelas });
+            alert("Data kelas diperbarui!");
         } else {
             await api.post('/admin/kelas', { nama_kelas: form.nama_kelas });
+            alert("Kelas baru ditambahkan!");
         }
-        alert("Berhasil!");
-        closeModal();
+        showModal.value = false;
         fetchData();
     } catch (error) {
-        alert("Gagal menyimpan data.");
+        const msg = error.response?.data?.message || "Gagal menyimpan data.";
+        alert(msg);
     }
 };
 
+// 4. HAPUS DATA
 const hapusData = async (id) => {
-    if (!confirm("Yakin hapus kelas ini?")) return;
+    if (!confirm("Yakin ingin menghapus kelas ini?")) return;
     try {
         await api.delete(`/admin/kelas/${id}`);
         fetchData();
+        alert("Data kelas dihapus.");
     } catch (error) {
-        alert("Gagal menghapus.");
+        alert("Gagal menghapus data.");
     }
 };
 
@@ -66,39 +98,76 @@ onMounted(fetchData);
 </script>
 
 <template>
-<div class="container">
-    <div class="header">
-        <h2>🏫 Data Kelas</h2>
-        <button @click="openAdd" class="btn-add">+ Tambah Kelas</button>
+<div class="page-container">
+    <div class="content-wrapper">
+        <div class="header-wrapper">
+            <button @click="handleBack" class="btn-back">
+                <span>⬅</span> Kembali
+            </button>
+
+            <div class="header-content">
+                <div class="title-section">
+                    <h2>🏫 Data Kelas</h2>
+                    <p class="subtitle">Atur daftar kelas di sekolah.</p>
+                </div>
+                <button @click="openAdd" class="btn btn-primary btn-add">
+                    + Tambah Kelas
+                </button>
+            </div>
+        </div>
+
+        <div v-if="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Memuat data kelas...</p>
+        </div>
+
+        <div v-else class="table-container">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px">No</th>
+                            <th>Nama Kelas</th>
+                            <th style="width: 120px">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="listKelas.length === 0">
+                            <td colspan="3" class="text-center">Belum ada data kelas.</td>
+                        </tr>
+                        <tr v-for="(item, index) in listKelas" :key="item.id || index">
+                            <td>{{ index + 1 }}</td>
+                            <td><span class="fw-bold text-dark">{{ item.nama_kelas }}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button @click="openEdit(item)" class="btn-icon edit" title="Edit">✏️</button>
+                                    <button @click="hapusData(item.id)" class="btn-icon delete" title="Hapus">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama Kelas</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(item, index) in listKelas" :key="item.id">
-                <td>{{ index + 1 }}</td>
-                <td>{{ item.nama_kelas }}</td>
-                <td>
-                    <button @click="openEdit(item)" class="btn-edit">Edit</button>
-                    <button @click="hapusData(item.id)" class="btn-del">Hapus</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>{{ isEdit ? 'Edit Kelas' : 'Tambah Kelas' }}</h3>
+                <button @click="showModal = false" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nama Kelas</label>
+                    <input v-model="form.nama_kelas" type="text" placeholder="Contoh: X IPA 1">
+                </div>
+            </div>
 
-    <div v-if="showModal" class="modal-overlay">
-        <div class="modal">
-            <h3>{{ isEdit ? 'Edit Kelas' : 'Tambah Kelas' }}</h3>
-            <input v-model="form.nama_kelas" placeholder="Nama Kelas (Contoh: X IPA 1)" class="input">
-            <div class="modal-actions">
-                <button @click="closeModal" class="btn-cancel">Batal</button>
-                <button @click="simpanData" class="btn-save">Simpan</button>
+            <div class="modal-footer">
+                <button @click="showModal = false" class="btn btn-secondary">Batal</button>
+                <button @click="simpanData" class="btn btn-primary">Simpan</button>
             </div>
         </div>
     </div>
@@ -106,17 +175,77 @@ onMounted(fetchData);
 </template>
 
 <style scoped>
-/* Style sederhana disamakan dengan admin lain */
-.container { max-width: 800px; margin: 2rem auto; padding: 1rem; font-family: sans-serif; }
-.header { display: flex; justify-content: space-between; margin-bottom: 1rem; }
-.table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.table th, .table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-.table th { background: #f4f4f4; }
-.btn-add, .btn-save { background: #3498db; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
-.btn-edit { background: #f1c40f; padding: 5px 10px; border: none; margin-right: 5px; cursor: pointer; border-radius: 3px; }
-.btn-del, .btn-cancel { background: #e74c3c; color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px; }
-.modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; }
-.modal { background: white; padding: 20px; border-radius: 8px; width: 400px; display: flex; flex-direction: column; gap: 10px; }
-.input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+/* --- PAGE CONTAINER & SCROLL FIX --- */
+.page-container {
+    height: 100vh;
+    overflow-y: auto;
+    background-color: #f4f6f9;
+    box-sizing: border-box;
+}
+
+.content-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem 1.5rem;
+    font-family: 'Segoe UI', sans-serif;
+    color: #333;
+}
+
+/* Header */
+.header-wrapper { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+.btn-back { background: none; border: none; color: #7f8c8d; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; width: fit-content; padding: 0; font-size: 0.95rem; }
+.btn-back:hover { color: #2c3e50; }
+.header-content { display: flex; justify-content: space-between; align-items: center; }
+.title-section h2 { margin: 0; color: #2c3e50; font-size: 1.8rem; }
+.subtitle { margin: 5px 0 0; color: #7f8c8d; font-size: 0.95rem; }
+
+/* Buttons */
+.btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+.btn-primary { background-color: #3498db; color: white; }
+.btn-primary:hover { background-color: #2980b9; }
+.btn-secondary { background-color: #ecf0f1; color: #7f8c8d; }
+.btn-icon { width: 34px; height: 34px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.edit { background: #fff8e1; color: #f39c12; }
+.delete { background: #ffebee; color: #e74c3c; margin-left: 5px; }
+
+/* Table */
+.table-container { background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #eee; overflow: hidden; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.custom-table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+.custom-table th, .custom-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+.custom-table th { background-color: #f8f9fa; color: #34495e; font-weight: 700; font-size: 0.9rem; }
+.fw-bold { font-weight: 600; }
+.text-dark { color: #2c3e50; }
+.text-center { text-align: center; }
+
+/* Modal & Form */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
+.modal-content { 
+    background: white; width: 100%; max-width: 400px; border-radius: 12px; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: slideUp 0.3s ease;
+    display: flex; flex-direction: column; max-height: 90vh;
+}
+.modal-header { padding: 1.25rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.modal-body { padding: 1.5rem; overflow-y: auto; }
+.modal-footer { padding: 1.25rem; background: #f8f9fa; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; border-radius: 0 0 12px 12px; flex-shrink: 0; }
+
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #34495e; }
+.form-group input { width: 100%; padding: 10px 12px; border: 1px solid #dfe6e9; border-radius: 8px; font-size: 0.95rem; box-sizing: border-box; }
+.form-group input:focus { outline: none; border-color: #3498db; }
+.close-btn { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #95a5a6; }
+
+/* Loading & Animation */
+.loading-state { text-align: center; padding: 4rem; color: #95a5a6; }
+.spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .content-wrapper { padding: 1rem 1rem 5rem 1rem; }
+    .header-content { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .btn-add { width: 100%; justify-content: center; display: flex; }
+    .custom-table th, .custom-table td { padding: 12px 15px; font-size: 0.9rem; }
+}
 </style>
